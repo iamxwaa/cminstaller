@@ -46,8 +46,7 @@ func main() {
 	flag.Parse()
 	cmconfig, err := loadConfig()
 	if !*nocheck && !*myStep {
-		if !checkPackage(cmconfig) {
-			fmt.Println("安装包检验错误,请联系管理员.")
+		if !check(cmconfig) {
 			return
 		}
 	}
@@ -239,6 +238,33 @@ func printInfo(cmconfig config.CminstallerConfig) {
 	fmt.Printf("# 数据库访问账号: %s\n", cmconfig.MysqlConfig.CdhUser)
 	fmt.Printf("# 数据库访问密码: %s\n", cmconfig.MysqlConfig.CdhUserPwd)
 	fmt.Println("#########################################################")
+}
+
+func check(cmconfig config.CminstallerConfig) bool {
+	if !checkPackage(cmconfig) {
+		fmt.Println("安装包检验错误,请联系管理员.")
+		return false
+	}
+	if !checkConnection(cmconfig) {
+		fmt.Println("主机连接校验失败,请联系管理员.")
+		return false
+	}
+	return true
+}
+
+func checkConnection(cmconfig config.CminstallerConfig) bool {
+	defer func() {
+		if info := recover(); info != nil {
+			fmt.Println("连接错误", info)
+		}
+	}()
+	for _, v := range cmconfig.HostConfig.Slaves {
+		fmt.Printf("> 检查%s连接\n", v.Ip)
+		a1, a2 := action.GetSftpClient(v)
+		defer a1.Close()
+		defer a2.Close()
+	}
+	return true
 }
 
 func checkPackage(cmconfig config.CminstallerConfig) bool {

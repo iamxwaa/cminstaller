@@ -334,6 +334,7 @@ func InstallCM_12() {
 
 //安装cm（go实现）
 func InstallCM(cmconfig config.CminstallerConfig) {
+	fmt.Println(">  准备安装Cloudera Manager")
 	cmdaemons := "cloudera-manager-daemons"
 	cmdaemonsPath := cmconfig.GetPackageDir("cm") + "/cloudera-manager-daemons*"
 	cmserver := "cloudera-manager-server"
