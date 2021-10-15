@@ -26,6 +26,18 @@ func RunCommand(name string, params []string) string {
 }
 
 //执行命令
+func sh3(name string, params []string, out io.Writer, errio io.Writer) {
+	e := exec.Command(name, params...)
+	e.Stderr = errio
+	e.Stdout = out
+	err := e.Run()
+	if nil != err {
+		StopProcess(S_FAIL)
+		panic(err)
+	}
+}
+
+//执行命令
 func sh2(name string, params []string) {
 	e := exec.Command(name, params...)
 	err := e.Run()
@@ -316,6 +328,97 @@ func UploadCDH(cmconfig config.CminstallerConfig) {
 func InstallCM_12() {
 	StartProcess("安装Cloudera Manager")
 	shIO("installCM", "12")
+	StopProcess(S_OK)
+	recordInstall(12, S_OK)
+}
+
+//安装cm（go实现）
+func InstallCM(cmconfig config.CminstallerConfig) {
+	cmdaemons := "cloudera-manager-daemons"
+	cmdaemonsPath := cmconfig.GetPackageDir("cm") + "/cloudera-manager-daemons*"
+	cmserver := "cloudera-manager-server"
+	cmserverPath := cmconfig.GetPackageDir("cm") + "/cloudera-manager-server*"
+	cmagent := "cloudera-manager-agent"
+	cmagentPath := cmconfig.GetPackageDir("cm") + "/cloudera-manager-agent*"
+	masterIp := cmconfig.HostConfig.Master.Ip
+	var wg sync.WaitGroup
+
+	name, installed := CheckInstalled(cmdaemons)
+	if installed {
+		fmt.Printf("> %s已安装%s %s\n", masterIp, name, S_SKIP)
+	}
+	name2, installed2 := CheckInstalled(cmagent)
+	if installed2 {
+		fmt.Printf("> %s已安装%s %s\n", masterIp, name2, S_SKIP)
+	}
+	name3, installed3 := CheckInstalled(cmserver)
+	if installed3 {
+		fmt.Printf("> %s已安装%s %s\n", masterIp, name3, S_SKIP)
+	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		out, errio := openLog("12_" + masterIp)
+		defer out.Close()
+		defer errio.Close()
+		if !installed {
+			sh3("yum", []string{"localinstall", "-y", cmdaemonsPath}, out, errio)
+		}
+		if !installed2 {
+			sh3("yum", []string{"localinstall", "-y", cmagentPath}, out, errio)
+		}
+		if !installed3 {
+			sh3("yum", []string{"localinstall", "-y", cmserverPath}, out, errio)
+		}
+	}()
+	for _, v := range cmconfig.HostConfig.Slaves {
+		hostInfo := v
+		name, installed := Ssh_CheckInstalled(hostInfo, cmdaemons)
+		if installed {
+			fmt.Printf("> %s已安装%s %s\n", hostInfo.Ip, name, S_SKIP)
+		}
+		name2, installed2 := Ssh_CheckInstalled(hostInfo, cmagent)
+		if installed2 {
+			fmt.Printf("> %s已安装%s %s\n", hostInfo.Ip, name2, S_SKIP)
+		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			sshClient := GetSshClient(hostInfo)
+			defer sshClient.Close()
+			out2, errio2 := openLog("12_" + hostInfo.Ip)
+			defer out2.Close()
+			defer errio2.Close()
+			if !installed {
+				session, err := sshClient.NewSession()
+				if nil != err {
+					panic(err)
+				}
+				defer session.Close()
+				session.Stdout = out2
+				session.Stderr = errio2
+				e1 := session.Run("yum localinstall -y " + cmdaemonsPath)
+				if nil != e1 {
+					panic(e1)
+				}
+			}
+			if !installed2 {
+				session, err := sshClient.NewSession()
+				if nil != err {
+					panic(err)
+				}
+				defer session.Close()
+				session.Stdout = out2
+				session.Stderr = errio2
+				e1 := session.Run("yum localinstall -y " + cmagentPath)
+				if nil != e1 {
+					panic(e1)
+				}
+			}
+		}()
+	}
+	StartProcess("等待Cloudera Manager安装完毕")
+	wg.Wait()
 	StopProcess(S_OK)
 	recordInstall(12, S_OK)
 }

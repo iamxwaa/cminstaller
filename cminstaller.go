@@ -173,7 +173,11 @@ func main() {
 		}
 		fallthrough
 	case 12:
-		action.InstallCM_12()
+		if *native {
+			action.InstallCM(cmconfig)
+		} else {
+			action.InstallCM_12()
+		}
 		if *myStep {
 			break
 		}

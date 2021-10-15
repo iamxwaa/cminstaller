@@ -380,6 +380,7 @@ function installCM(){
     ) &
     done
     (
+        source /etc/profile
         echo "${master[0]}: 安装 cloudera-manager-daemons"
         yum localinstall -y $basePackagePath/cm/cloudera-manager-daemons*
         echo "${master[0]}: 安装 cloudera-manager-agent"

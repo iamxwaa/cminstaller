@@ -1,11 +1,14 @@
 package action
 
 import (
+	"bufio"
+	"bytes"
 	"cminstaller/config"
 	"io"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
@@ -187,4 +190,36 @@ func Ls2(dir string) []string {
 func Exists(p string) bool {
 	_, err := os.Lstat(p)
 	return nil == err
+}
+
+func CheckInstalled(name string) (string, bool) {
+	m := RunCommand("rpm", []string{"-qa"})
+	ms := strings.Split(m, "\n")
+	for _, n := range ms {
+		if strings.Contains(n, name) {
+			return strings.Replace(n, "\n", "", -1), true
+		}
+	}
+	return "", false
+}
+
+func Ssh_CheckInstalled(hostInfo config.HostInfo, name string) (string, bool) {
+	sshClient := GetSshClient(hostInfo)
+	defer sshClient.Close()
+	session, err := sshClient.NewSession()
+	if nil != err {
+		panic(err)
+	}
+	defer session.Close()
+	var buffer bytes.Buffer
+	session.Stdout = bufio.NewWriter(&buffer)
+	err2 := session.Run("rpm -qa | grep " + name)
+	if nil != err2 {
+		return "", false
+	}
+	n := buffer.String()
+	if n != "" {
+		return strings.Replace(n, "\n", "", -1), true
+	}
+	return "", false
 }
