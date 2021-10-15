@@ -1,0 +1,26 @@
+path:
+  base: /cdh
+  package: /cdh/package
+mysql:
+  port: 53306
+  root-pwd: vrv_root_123456
+  cdh-user: vrvcdh
+  cdh-user-pwd: vrv_cdh_123456
+host:
+  master:
+    hostname: xwxw1
+    ip: 192.168.120.139
+    port: 22
+    user: root
+    pwd: root
+  slaves:
+    - hostname: xwxw2
+      ip: 192.168.120.140
+      port: 22
+      user: root
+      pwd: root
+    - hostname: xwxw3
+      ip: 192.168.120.142
+      port: 22
+      user: root
+      pwd: root
