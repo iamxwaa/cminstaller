@@ -8,8 +8,10 @@ import (
 //go:embed cdhinstall.sh
 var shell string
 
+//是否记录安装步骤
 var IsRecordInstall = true
 
+//获取安装shell脚本
 func GetShell(cmconfig CminstallerConfig) string {
 	s := "#!/bin/bash"
 	s += "\nbasePath=" + cmconfig.PathConfig.Base

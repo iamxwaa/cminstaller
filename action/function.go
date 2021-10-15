@@ -13,6 +13,7 @@ import (
 	"sync"
 )
 
+//执行命令获取返回
 func RunCommand(name string, params []string) string {
 	var buffer bytes.Buffer
 	e := exec.Command(name, params...)
@@ -24,6 +25,7 @@ func RunCommand(name string, params []string) string {
 	return buffer.String()
 }
 
+//执行命令
 func sh2(name string, params []string) {
 	e := exec.Command(name, params...)
 	err := e.Run()
@@ -33,6 +35,7 @@ func sh2(name string, params []string) {
 	}
 }
 
+//执行命令
 func sh(name string, out io.Writer, errio io.Writer) {
 	e := exec.Command(InstallRecord.Name, name)
 	e.Stderr = errio
@@ -44,6 +47,7 @@ func sh(name string, out io.Writer, errio io.Writer) {
 	}
 }
 
+//执行命令，记录日志
 func shIO(name string, logName string) {
 	out, errio := openLog(logName)
 	defer out.Close()
@@ -51,6 +55,7 @@ func shIO(name string, logName string) {
 	sh(name, out, errio)
 }
 
+//创建日志文件
 func openLog(name string) (*os.File, *os.File) {
 	logDir := "cmi_" + strconv.FormatInt(InstallRecord.StartTime, 10)
 	os.Mkdir(logDir, 0755)
@@ -65,6 +70,7 @@ func openLog(name string) (*os.File, *os.File) {
 	return out, errio
 }
 
+//安装必备组件
 func InstallNeeded_1() {
 	StartProcess("开始安装必要组件")
 	shIO("installMy", "1")
@@ -72,6 +78,7 @@ func InstallNeeded_1() {
 	recordInstall(1, S_OK)
 }
 
+//生成集群免秘钥
 func DoSshkeygen_2() {
 	StartProcess("开始配置集群免秘钥")
 	shIO("sshkeygen", "2")
@@ -79,6 +86,7 @@ func DoSshkeygen_2() {
 	recordInstall(2, S_OK)
 }
 
+//更新集群hosts
 func UpdateHosts_3() {
 	StartProcess("更新集群hosts配置")
 	shIO("updateHosts", "3")
@@ -86,6 +94,7 @@ func UpdateHosts_3() {
 	recordInstall(3, S_OK)
 }
 
+//关闭并禁用集群防火墙
 func ShutdownFirewall_4() {
 	StartProcess("关闭并禁用集群防火墙")
 	shIO("shutdownFirewall", "4")
@@ -93,6 +102,7 @@ func ShutdownFirewall_4() {
 	recordInstall(4, S_OK)
 }
 
+//优化集群配置
 func OptimizeServer_5() {
 	StartProcess("优化集群服务器配置")
 	shIO("optimizeServer", "5")
@@ -100,6 +110,7 @@ func OptimizeServer_5() {
 	recordInstall(5, S_OK)
 }
 
+//安装mysql数据库
 func InstallMysql_6() {
 	StartProcess("安装Mysql服务")
 	shIO("installMysql", "6")
@@ -107,6 +118,7 @@ func InstallMysql_6() {
 	recordInstall(6, S_OK)
 }
 
+//安装httpd服务
 func InstallHttpd_7() {
 	StartProcess("安装httpd服务")
 	shIO("installHttpd", "7")
@@ -114,6 +126,7 @@ func InstallHttpd_7() {
 	recordInstall(7, S_OK)
 }
 
+//挂载yum源
 func MountYum_8() {
 	StartProcess("挂载离线yum源")
 	shIO("mountYum", "8")
@@ -121,6 +134,7 @@ func MountYum_8() {
 	recordInstall(8, S_OK)
 }
 
+//更新yum源（go实现）
 func PutYumRepo(cmconfig config.CminstallerConfig) {
 	repoName := "vrv-centos.repo"
 	repoPath := "/etc/yum.repos.d"
@@ -201,6 +215,7 @@ priority=1
 	recordInstall(9, S_OK)
 }
 
+//更新yum源
 func PutYumRepo_9() {
 	StartProcess("更新集群yum源配置")
 	shIO("putYumRepo", "9")
@@ -208,6 +223,7 @@ func PutYumRepo_9() {
 	recordInstall(9, S_OK)
 }
 
+//安装jdk（go实现）
 func InstallJDK(cmconfig config.CminstallerConfig) {
 	sourcePath := cmconfig.GetPackageDir("jdk")
 	var sourceFileName string
@@ -233,6 +249,7 @@ func InstallJDK(cmconfig config.CminstallerConfig) {
 	recordInstall(10, S_OK)
 }
 
+//安装jdk
 func InstallJDK_10() {
 	StartProcess("安装java环境")
 	shIO("installJDK", "10")
@@ -240,6 +257,7 @@ func InstallJDK_10() {
 	recordInstall(10, S_OK)
 }
 
+//上传安装包
 func UploadCDH_11() {
 	StartProcess("上传CDH安装包")
 	shIO("uploadCDH", "11")
@@ -247,6 +265,7 @@ func UploadCDH_11() {
 	recordInstall(11, S_OK)
 }
 
+//上传安装包（go实现）
 func UploadCDH(cmconfig config.CminstallerConfig) {
 	distRepoPath := "/opt/cloudera/parcel-repo"
 	if !Exists(distRepoPath) {
@@ -293,6 +312,7 @@ func UploadCDH(cmconfig config.CminstallerConfig) {
 	recordInstall(11, S_OK)
 }
 
+//安装cm
 func InstallCM_12() {
 	StartProcess("安装Cloudera Manager")
 	shIO("installCM", "12")
@@ -300,6 +320,7 @@ func InstallCM_12() {
 	recordInstall(12, S_OK)
 }
 
+//配置cm数据库
 func SetupMysql_13() {
 	StartProcess("配置Mysql数据库")
 	shIO("setupMysql", "13")
@@ -307,6 +328,7 @@ func SetupMysql_13() {
 	recordInstall(13, S_OK)
 }
 
+//更新cm配置
 func UpdateCmSetting_14() {
 	StartProcess("更新Cloudera Manager配置")
 	shIO("updateCmSetting", "14")
@@ -314,6 +336,7 @@ func UpdateCmSetting_14() {
 	recordInstall(14, S_OK)
 }
 
+//启动cm server
 func StartServer_15() {
 	StartProcess("启动CM-Server")
 	shIO("startServer", "15")
@@ -321,6 +344,7 @@ func StartServer_15() {
 	recordInstall(15, S_OK)
 }
 
+//启动cm agent
 func StartAgent_16() {
 	StartProcess("启动CM-Agent")
 	shIO("startAgent", "16")
@@ -328,6 +352,7 @@ func StartAgent_16() {
 	recordInstall(16, S_OK)
 }
 
+//关闭cm server
 func StopServer_17() {
 	StartProcess("关闭CM-Server")
 	shIO("stopServer", "17")
@@ -335,6 +360,7 @@ func StopServer_17() {
 	recordInstall(17, S_OK)
 }
 
+//关闭cm agent
 func StopAgent_18() {
 	StartProcess("关闭CM-Agent")
 	shIO("stopAgent", "18")
@@ -342,24 +368,28 @@ func StopAgent_18() {
 	recordInstall(18, S_OK)
 }
 
+//启动cm server
 func StartServer() {
 	StartProcess("启动CM-Server")
 	sh("startServer", os.Stdout, os.Stderr)
 	StopProcess(S_FINISH)
 }
 
+//启动cm agent
 func StartAgent() {
 	StartProcess("启动CM-Agent")
 	sh("startAgent", os.Stdout, os.Stderr)
 	StopProcess(S_FINISH)
 }
 
+//关闭cm server
 func StopServer() {
 	StartProcess("关闭CM-Server")
 	sh("stopServer", os.Stdout, os.Stderr)
 	StopProcess(S_FINISH)
 }
 
+//关闭cm agent
 func StopAgent() {
 	StartProcess("关闭CM-Agent")
 	sh("stopAgent", os.Stdout, os.Stderr)

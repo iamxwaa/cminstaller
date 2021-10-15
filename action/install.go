@@ -15,18 +15,27 @@ import (
 )
 
 const (
-	S_OK        = "OK"
-	S_FAIL      = "FAIL"
-	S_FINISH    = "FINISH"
-	S_SKIP      = "[SKIP]"
+	//执行成功
+	S_OK = "OK"
+	//执行失败
+	S_FAIL = "FAIL"
+	//执行完毕
+	S_FINISH = "FINISH"
+	//跳过执行
+	S_SKIP = "[SKIP]"
+	//安装记录文件
 	RECORD_FILE = "cminstaller-record.yml"
 )
 
 var (
-	s             = spinner.New(spinner.CharSets[11], 100*time.Millisecond)
-	ShellPath     string
+	//进度条对象
+	s = spinner.New(spinner.CharSets[11], 100*time.Millisecond)
+	//脚本保存路径
+	ShellPath string
+	//安装配置
 	InstallRecord = config.CminstallerRecord{Continue: false}
-	startTime     int64
+	//安装开始时间
+	startTime int64
 )
 
 func addX(path string) {
@@ -45,12 +54,14 @@ func recordInstall(num int, state string) {
 	ioutil.WriteFile(RECORD_FILE, out, 0755)
 }
 
+//结束安装并记录安装结果
 func FinishInstall() {
 	StartProcess("CDH 安装完毕")
 	recordInstall(255, S_OK)
 	StopProcess("")
 }
 
+//准备安装
 func PrepareInstall(cmconfig config.CminstallerConfig, myStep bool) {
 	recFile, err := ioutil.ReadFile(RECORD_FILE)
 	if nil == err || os.IsExist(err) {
@@ -87,6 +98,7 @@ func PrepareInstall(cmconfig config.CminstallerConfig, myStep bool) {
 	recordInstall(0, S_OK)
 }
 
+//启动进度条
 func StartProcess(msg string) {
 	s.Suffix = "  " + msg
 	s.Start()
@@ -94,6 +106,7 @@ func StartProcess(msg string) {
 	time.Sleep(300 * time.Millisecond)
 }
 
+//停止进度条
 func StopProcess(msg string) {
 	cost := time.Now().UTC().Unix() - startTime
 	if msg != "" {
