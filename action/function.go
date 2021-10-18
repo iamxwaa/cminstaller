@@ -363,13 +363,13 @@ func InstallCM(cmconfig config.CminstallerConfig) {
 		defer out.Close()
 		defer errio.Close()
 		if !installed {
-			sh3("yum", []string{"localinstall", "-y", cmdaemonsPath}, out, errio)
+			sh3("sh", []string{"-c", "yum localinstall -y " + cmdaemonsPath}, out, errio)
 		}
 		if !installed2 {
-			sh3("yum", []string{"localinstall", "-y", cmagentPath}, out, errio)
+			sh3("sh", []string{"-c", "yum localinstall -y " + cmagentPath}, out, errio)
 		}
 		if !installed3 {
-			sh3("yum", []string{"localinstall", "-y", cmserverPath}, out, errio)
+			sh3("sh", []string{"-c", "yum localinstall -y " + cmserverPath}, out, errio)
 		}
 	}()
 	for _, v := range cmconfig.HostConfig.Slaves {
